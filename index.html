@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   
   <title>Daiju on Github</title>
-  <meta name="author" content="John Doe">
+  <meta name="author" content="Daiju Watanabe">
 
   
   
@@ -18,6 +18,8 @@
 
 <body>
   <header id="header" class="inner"><nav>
+  
+  Daiju on Github
   <ul>
     
       <li><a href="/">Home</a></li>
@@ -25,7 +27,8 @@
       <li><a href="/archives">Archives</a></li>
     
   </ul>
-</nav></header>
+</nav>
+</header>
   <div id="content" class="inner">
   <article class="post">
   
@@ -76,7 +79,7 @@
 <h1 id="OpenJTalkをダウンロード＆修正＆コンパイルします。"><a href="#OpenJTalkをダウンロード＆修正＆コンパイルします。" class="headerlink" title="OpenJTalkをダウンロード＆修正＆コンパイルします。"></a>OpenJTalkをダウンロード＆修正＆コンパイルします。</h1><p>下記のホームページよりダウンロードのリンクを取得。2017年9月では1.10が最新ぽいのでそれをダウンロードします。</p>
 <p><a href="http://open-jtalk.sourceforge.net/" target="_blank" rel="external">http://open-jtalk.sourceforge.net/</a></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">wget http://downloads.sourceforge.net/open-jtalk/open_jtalk-1.10.tar.gz</div><div class="line"></div><div class="line">tar -zxvf open_jtalk-1.10.tar.gz</div><div class="line"></div><div class="line">cd open_jtalk-1.10</div><div class="line"></div><div class="line">cp bin/open_jtalk.c bin/open_jtalk.c.back</div></pre></td></tr></table></figure>
-<p>bin/open_jtalk.c を修正します。<br>ダウンロードはこちら→<a href="./downloads/open_jtalk.c">Our Menu</a><br>右クリックで保存を選んで、open_jtalk-1.10/bin/open_jtalk.cと置き換えていただくことで使えます。<br>具体的な修正内容は下記のようになります。  </p>
+<p>bin/open_jtalk.c を修正します。<br>ダウンロードはこちら→<a href="/downloads/open_jtalk.c">open_jtalk.c</a><br>右クリックで保存を選んで、open_jtalk-1.10/bin/open_jtalk.cと置き換えていただくことで使えます。<br>具体的な修正内容は下記のようになります。  </p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">--- a/a/open_jtalk.c</div><div class="line">+++ b/a/open_jtalk.c</div><div class="line">@@ -425,13 +425,22 @@ int main(int argc, char **argv)</div><div class="line">          &#125;</div><div class="line">       &#125; else &#123;</div><div class="line">          txtfn = *argv;</div><div class="line">-         txtfp = fopen(txtfn, &quot;rt&quot;);</div><div class="line">       &#125;</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /* synthesize */</div><div class="line">-   fgets(buff, MAXBUFLEN - 1, txtfp);</div><div class="line">-   if (Open_JTalk_synthesis(&amp;open_jtalk, buff, wavfp, logfp) != TRUE) &#123;</div><div class="line">+   txtfp = fopen(txtfn, &quot;rt&quot;);</div><div class="line">+   if ( txtfp )&#123;</div><div class="line">+     fgets(buff, MAXBUFLEN - 1, txtfp);</div><div class="line">+   &#125;else&#123;</div><div class="line">+     strncpy(buff,txtfn,MAXBUFLEN - 1);</div><div class="line">+   &#125; </div><div class="line">+</div><div class="line">+   FILE *outfp = wavfp;</div><div class="line">+   if ( outfp == NULL )&#123;</div><div class="line">+       outfp = stdout;</div><div class="line">+   &#125; </div><div class="line">+   if (Open_JTalk_synthesis(&amp;open_jtalk, buff, outfp, logfp) != TRUE) &#123;</div><div class="line">       fprintf(stderr, &quot;Error: waveform cannot be synthesized.\n&quot;);</div><div class="line">       Open_JTalk_clear(&amp;open_jtalk);</div><div class="line">       exit(1);</div></pre></td></tr></table></figure>
 <p>修正が終わったらconfigure,makeします。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">./configure</div><div class="line"></div><div class="line">make</div><div class="line"></div><div class="line">cd ..</div></pre></td></tr></table></figure>
@@ -112,7 +115,7 @@
 </div>
 <p>
   
-  &copy; 2017 John Doe
+  &copy; 2017 Daiju Watanabe
   
 </p>
 <div class="clearfix"></div></footer>
