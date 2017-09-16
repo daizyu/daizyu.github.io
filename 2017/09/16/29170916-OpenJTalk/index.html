@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>OpenJTalk Wave Fileを作らずに再生する | Daiju on Github</title>
+  <meta name="author" content="John Doe">
+
+  
+  <meta name="description" content="OpenJTalkという音声合成ソフトで読み上げを行う際に、Waveファイルをいちいち作成するしてから再生するスタイルが気になっていたのでWaveを作らないように直しました。Raspberry PiなどSDカードにWaveファイルを書き込むため、結構タイムラグができてしまうのですが、この改良を加える">
+  
+  
+
+  <link rel="alternate" href="/atom.xml" title="Daiju on Github" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+  
+</head>
+
+<body>
+  <header id="header" class="inner"><nav>
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+</nav></header>
+  <div id="content" class="inner"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <header>
+    
+  
+    <h1 class="title">OpenJTalk Wave Fileを作らずに再生する</h1>
+  
+
+    <time datetime="2017-09-16T05:59:12.000Z">
+  <span class="day">16</span><span class="month">Sep</span>
+</time>
+  </header>
+  <div class="entry-content">
+    
+      <p>OpenJTalkという音声合成ソフトで読み上げを行う際に、Waveファイルをいちいち作成するしてから再生するスタイルが気になっていたのでWaveを作らないように直しました。<br>Raspberry PiなどSDカードにWaveファイルを書き込むため、結構タイムラグができてしまうのですが、この改良を加えると少し読み上げ開始までの速度が早くなります。</p>
+<p>また、もう１つ気になっていたのが、読み上げデータをいちいちファイルに保存してから、OpenJTalkに渡す方法もめんどくさいので直しました。コマンドライン引数から渡せるようにしました。</p>
+<p>先人は主に猫ぱーんち！さんの<a href="http://d.hatena.ne.jp/penkoba/20121014/1350201613" target="_blank" rel="external">http://d.hatena.ne.jp/penkoba/20121014/1350201613</a>の記事やその続編が先に同様のWaveファイルを作らない作業をしております。<br>しかし、私の方式と、猫ぱーんち！さんの方式の仕組みは大きく違い</p>
+<p>猫ぱーんち！さん方式では、OpenJTalkが呼び出すライブラリhts_engineに音源への出力APIを組み込んだもの。</p>
+<p>私の方式では、hts_engineは変更しないで、OpenJTalk側の出力ファイルの吐き出しを標準出力に渡す方法にした。<br>そのままでは、バイナリーのWaveファイルの情報が画面に文字情報として出てきてしまいます。<br>そこで、aplayというソフトにパイプで吐き出し、音声に変換してスピーカー等から鳴らすような仕組みをとっています。  </p>
+<p>猫ぱーんち！さんの方式とくらべメリットデメリットは下記のようになると思います。</p>
+<p>利点</p>
+<ul>
+<li>ソースコードの修正が少ない</li>
+<li>hts_engineを変更せずにOpenJTalkだけにとどめているため、依存関係の影響度が小さい</li>
+<li>独自で音声出力処理を作っていないので、aplayのような汎用的な出力プログラムに任せている</li>
+</ul>
+<p>欠点</p>
+<ul>
+<li>Waveファイル１個分とaplayの実行分少しメモリを食ってしまう</li>
+<li>OpenJTalkの音声変換処理が終わるまで多分aplayがまってしまう</li>
+</ul>
+<p>使い方<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./open_jtalk-1.10/bin/open_jtalk -m voices/想音いくる_1.0/想音いくる.htsvoice -x open_jtalk-1.10/mecab-naist-jdic &apos;きこえるかー&apos; | aplay</div></pre></td></tr></table></figure></p>
+<p>基本的には <a href="http://open-jtalk.sourceforge.net/" target="_blank" rel="external">http://open-jtalk.sourceforge.net/</a>の情報に則ってmakeしていきます。</p>
+<h1 id="hts-engineのダウンロード及びインストール"><a href="#hts-engineのダウンロード及びインストール" class="headerlink" title="hts_engineのダウンロード及びインストール"></a>hts_engineのダウンロード及びインストール</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">wget --trust-server-names https://sourceforge.net/projects/hts-engine/files/hts_engine%20API/hts_engine_API-1.10/hts_engine_API-1.10.tar.gz/download</div><div class="line"></div><div class="line">tar -zxvf hts_engine_API-1.10.tar.gz</div><div class="line"></div><div class="line">cd hts_engine_API-1.10</div><div class="line"></div><div class="line">./configure</div><div class="line"></div><div class="line">make</div><div class="line"></div><div class="line">sudo make install</div><div class="line"></div><div class="line">cd ..</div></pre></td></tr></table></figure>
+<h1 id="OpenJTalkをダウンロード＆修正＆コンパイルします。"><a href="#OpenJTalkをダウンロード＆修正＆コンパイルします。" class="headerlink" title="OpenJTalkをダウンロード＆修正＆コンパイルします。"></a>OpenJTalkをダウンロード＆修正＆コンパイルします。</h1><p>下記のホームページよりダウンロードのリンクを取得。2017年9月では1.10が最新ぽいのでそれをダウンロードします。</p>
+<p><a href="http://open-jtalk.sourceforge.net/" target="_blank" rel="external">http://open-jtalk.sourceforge.net/</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">wget http://downloads.sourceforge.net/open-jtalk/open_jtalk-1.10.tar.gz</div><div class="line"></div><div class="line">tar -zxvf open_jtalk-1.10.tar.gz</div><div class="line"></div><div class="line">cd open_jtalk-1.10</div><div class="line"></div><div class="line">cp bin/open_jtalk.c bin/open_jtalk.c.back</div></pre></td></tr></table></figure>
+<p>bin/open_jtalk.c を修正します。<br>ダウンロードはこちら→<a href="./downloads/open_jtalk.c">Our Menu</a><br>右クリックで保存を選んで、open_jtalk-1.10/bin/open_jtalk.cと置き換えていただくことで使えます。<br>具体的な修正内容は下記のようになります。  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">--- a/a/open_jtalk.c</div><div class="line">+++ b/a/open_jtalk.c</div><div class="line">@@ -425,13 +425,22 @@ int main(int argc, char **argv)</div><div class="line">          &#125;</div><div class="line">       &#125; else &#123;</div><div class="line">          txtfn = *argv;</div><div class="line">-         txtfp = fopen(txtfn, &quot;rt&quot;);</div><div class="line">       &#125;</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /* synthesize */</div><div class="line">-   fgets(buff, MAXBUFLEN - 1, txtfp);</div><div class="line">-   if (Open_JTalk_synthesis(&amp;open_jtalk, buff, wavfp, logfp) != TRUE) &#123;</div><div class="line">+   txtfp = fopen(txtfn, &quot;rt&quot;);</div><div class="line">+   if ( txtfp )&#123;</div><div class="line">+     fgets(buff, MAXBUFLEN - 1, txtfp);</div><div class="line">+   &#125;else&#123;</div><div class="line">+     strncpy(buff,txtfn,MAXBUFLEN - 1);</div><div class="line">+   &#125; </div><div class="line">+</div><div class="line">+   FILE *outfp = wavfp;</div><div class="line">+   if ( outfp == NULL )&#123;</div><div class="line">+       outfp = stdout;</div><div class="line">+   &#125; </div><div class="line">+   if (Open_JTalk_synthesis(&amp;open_jtalk, buff, outfp, logfp) != TRUE) &#123;</div><div class="line">       fprintf(stderr, &quot;Error: waveform cannot be synthesized.\n&quot;);</div><div class="line">       Open_JTalk_clear(&amp;open_jtalk);</div><div class="line">       exit(1);</div></pre></td></tr></table></figure>
+<p>修正が終わったらconfigure,makeします。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">./configure</div><div class="line"></div><div class="line">make</div><div class="line"></div><div class="line">cd ..</div></pre></td></tr></table></figure>
+<h1 id="音声データのダウンロード"><a href="#音声データのダウンロード" class="headerlink" title="音声データのダウンロード"></a>音声データのダウンロード</h1><p>一応サンプルを載せておきますが、好きな音声データをつかていただけたらと思います。<br>下記のサイトから音響データを探すことが可能です。<br>適当に選んでダウンロードしてみてください。</p>
+<p><a href="http://akihiro0105.web.fc2.com/Downloads/Downloads-htsvoice.html" target="_blank" rel="external">http://akihiro0105.web.fc2.com/Downloads/Downloads-htsvoice.html</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">mkdir voices</div><div class="line"></div><div class="line">cd voices</div><div class="line"></div><div class="line">wget -O 想音いくる.zip https://www.dropbox.com/s/lhjwmh6tosmv7tm/%E6%83%B3%E9%9F%B3%E3%81%84%E3%81%8F%E3%82%8B_1.0.zip?dl=1</div><div class="line"></div><div class="line">unzip 想音いくる.zip</div><div class="line"></div><div class="line">cd ..</div></pre></td></tr></table></figure>
+<h1 id="テスト"><a href="#テスト" class="headerlink" title="テスト"></a>テスト</h1><p>下記のように実施して聞こえてきたら完了です。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./open_jtalk-1.10/bin/open_jtalk -m voices/想音いくる_1.0/想音いくる.htsvoice -x open_jtalk-1.10/mecab-naist-jdic &apos;きこえるかー&apos; | aplay</div></pre></td></tr></table></figure></p>
+
+    
+    
+    <footer class="meta">
+      
+      
+      
+    </footer>
+    
+  </div>
+  
+</article></div>
+  <footer id="footer" class="inner"><div class="social alignright">
+  
+  
+  
+  
+  <a class="rss" href="/atom.xml" title="RSS">RSS</a>
+</div>
+<p>
+  
+  &copy; 2017 John Doe
+  
+</p>
+<div class="clearfix"></div></footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+
+<div id="phasebeam">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+<script src="/js/phasebeam.js"></script>
+</body>
+</html>
